@@ -88,25 +88,34 @@ secure-billing-rbac-demo/
     └── Multi-Tenant REST API
 ```
 
-##Local Development
+## Local Development
 
 The local development environment uses the following services:
 
-Service	URL
-SecureBill Web Client	http://localhost:8080
-Keycloak	http://localhost:8180
-RBAC REST API	http://localhost:8181
-Multi-Tenant REST API	http://localhost:8182
+| Service | URL |
+|---|---|
+| SecureBill Web Client | `http://localhost:8080` |
+| Keycloak | `http://localhost:8180` |
+| RBAC REST API | `http://localhost:8181` |
+| Multi-Tenant REST API | `http://localhost:8182` |
 
-##Environment Variables
+## Environment Variables
 
 The Web Client requires the following environment variables:
+
+```bash
 export KEYCLOAK_PROVIDER_URI="http://localhost:8180/realms/dmit2015-realm/"
 export KEYCLOAK_CLIENT_ID="your-keycloak-client-id"
 export KEYCLOAK_CLIENT_SECRET="your-keycloak-client-secret"
+
+```
 The secured REST APIs require:
+
+```bash
 export KEYCLOAK_JWKS_URI="http://localhost:8180/realms/dmit2015-realm/protocol/openid-connect/certs"
 export KEYCLOAK_ISSUER="http://localhost:8180/realms/dmit2015-realm"
+
+```
 
 Secrets and local HTTP test files are excluded from source control.
 
@@ -114,24 +123,26 @@ Running the Application
 
 Start Keycloak first.
 
-Then start the RBAC REST API:
-
+1. Start the RBAC REST API
+   
+```bash
 cd dmit2015-assignment07-rbac-restapi
 ./mvnw wildfly:run
-
-Start the Multi-Tenant REST API:
-
+```
+3. Start the Multi-Tenant REST API
+```bash
 cd dmit2015-assignment07-multitenant-restapi
 ./mvnw wildfly:run
-
-Finally, start the SecureBill Web Client:
-
+```
+5. Start the SecureBill Web Client
+```bash
 cd dmit2015-assignment07-restclient
 ./mvnw wildfly:run
-
-Open:
+```
+Then open:
 
 http://localhost:8080
+
 
 ##Security Design
 
