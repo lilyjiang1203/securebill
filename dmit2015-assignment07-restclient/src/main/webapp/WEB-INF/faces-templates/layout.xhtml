@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:faces="jakarta.faces"
+        xmlns:ui="jakarta.faces.facelets"
+        xmlns:f="jakarta.faces.core"
+        xmlns:h="jakarta.faces.html"
+        xmlns:pt="jakarta.faces.passthrough"
+        xmlns:cc="jakarta.faces.composite"
+        xmlns:c="jakarta.tags.core"
+        xmlns:fn="jakarta.tags.functions"
+        xmlns:o="http://omnifaces.org/ui"
+        xmlns:of="http://omnifaces.org/functions"
+        xmlns:p="http://primefaces.org/ui">
+
+<h:head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="description" content="${description}"/>
+    <meta name="keywords" content="${keywords}"/>
+
+    <title>${title}</title>
+
+    <h:outputStylesheet
+            library="webjars"
+            name="primeflex/4.0.0/primeflex.min.css"/>
+
+    <h:outputStylesheet
+            library="webjars"
+            name="primeflex/4.0.0/themes/primeone-light.css"/>
+
+    <ui:insert name="externalstyles"/>
+
+    <style>
+        body {
+            margin: 0;
+            background: #f7f8fa;
+            color: #1f2937;
+            font-family: Inter, Arial, sans-serif;
+        }
+
+        .app-shell {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-header {
+            background: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .app-header-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0.75rem 1.5rem;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .brand-icon {
+            font-size: 1.25rem;
+        }
+
+        .app-content {
+            flex: 1;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 3rem;
+            box-sizing: border-box;
+        }
+
+        .app-footer {
+            border-top: 1px solid #e5e7eb;
+            background: #ffffff;
+        }
+
+        .app-footer-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.25rem 1.5rem;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .user-label {
+            font-weight: 600;
+        }
+
+        .ui-menubar {
+            border: none !important;
+            background: transparent !important;
+            padding: 0 !important;
+        }
+
+        ${internalstyles}
+    </style>
+
+    <ui:insert name="headscripts"/>
+</h:head>
+
+<h:body>
+
+    <div class="app-shell">
+
+        <header class="app-header">
+            <div class="app-header-inner">
+
+                <div class="flex align-items-center justify-content-between gap-3">
+
+                    <div class="brand">
+                        <i class="pi pi-shield brand-icon"></i>
+                        <span>SecureBill</span>
+                    </div>
+
+                    <h:form>
+                        <p:menubar>
+
+                            <p:menuitem
+                                    value="Dashboard"
+                                    icon="pi pi-home"
+                                    url="#{request.contextPath}/index.xhtml"/>
+
+                            <p:menuitem
+                                    value="RBAC Bills"
+                                    icon="pi pi-lock"
+                                    url="#{request.contextPath}/bill/rbac/crud.xhtml"/>
+
+                            <p:menuitem
+                                    value="My Bills"
+                                    icon="pi pi-wallet"
+                                    url="#{request.contextPath}/bill/multitenant/crud.xhtml"/>
+
+                            <c:if test="${empty loginSession.username}">
+                                <p:menuitem
+                                        value="Login"
+                                        icon="pi pi-sign-in"
+                                        action="/login"/>
+                            </c:if>
+
+                            <c:if test="${not empty loginSession.username}">
+                                <p:menuitem
+                                        value="#{loginSession.username}"
+                                        icon="pi pi-user"/>
+
+                                <p:menuitem
+                                        value="Logout"
+                                        icon="pi pi-sign-out"
+                                        action="#{keycloakLogout.submit}"/>
+                            </c:if>
+
+                        </p:menubar>
+                    </h:form>
+
+                </div>
+
+            </div>
+        </header>
+
+        <main class="app-content">
+
+            <p:growl id="growl" showDetail="true"/>
+
+            <ui:insert name="maincontent">
+                NO MAIN CONTENT PROVIDED
+            </ui:insert>
+
+        </main>
+
+        <footer class="app-footer">
+            <div class="app-footer-inner">
+
+                <div class="flex flex-column md:flex-row justify-content-between gap-2">
+
+                <span>
+                    SecureBill — Secure billing and access-control demo
+                </span>
+
+                    <span>
+                    Jakarta EE · PrimeFaces · Keycloak · MicroProfile JWT · WildFly
+                </span>
+
+                </div>
+
+            </div>
+        </footer>
+
+    </div>
+
+    <ui:insert name="bodyscripts"/>
+
+</h:body>
+
+</html>

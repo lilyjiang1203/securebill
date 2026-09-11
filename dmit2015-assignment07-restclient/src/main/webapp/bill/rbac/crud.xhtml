@@ -1,0 +1,537 @@
+<ui:composition
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:faces="jakarta.faces"
+        xmlns:ui="jakarta.faces.facelets"
+        xmlns:f="jakarta.faces.core"
+        xmlns:h="jakarta.faces.html"
+        xmlns:pt="jakarta.faces.passthrough"
+        xmlns:cc="jakarta.faces.composite"
+        xmlns:c="jakarta.tags.core"
+        xmlns:fn="jakarta.tags.functions"
+        xmlns:o="http://omnifaces.org/ui"
+        xmlns:of="http://omnifaces.org/functions"
+        xmlns:p="http://primefaces.org/ui"
+        template="/WEB-INF/faces-templates/layout.xhtml">
+
+    <ui:param name="title" value="SecureBill | RBAC Bills"/>
+
+    <ui:param name="internalstyles" value="
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .page-eyebrow {
+            color: #2563eb;
+            font-size: .8rem;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            margin-bottom: .4rem;
+        }
+
+        .page-title {
+            margin: 0;
+            font-size: 2rem;
+            color: #111827;
+        }
+
+        .page-description {
+            color: #6b7280;
+            margin: .5rem 0 0;
+            max-width: 700px;
+            line-height: 1.6;
+        }
+
+        .permission-card {
+            background: #eff6ff;
+            border: 1px solid #dbeafe;
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .permission-title {
+            font-weight: 700;
+            color: #1e3a8a;
+            margin-bottom: .4rem;
+        }
+
+        .permission-text {
+            color: #475569;
+            font-size: .95rem;
+            line-height: 1.5;
+        }
+
+        .data-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            padding: 1.25rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,.05);
+        }
+
+        .BillRbacs-table-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .table-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .status-paid {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            padding: .3rem .7rem;
+            border-radius: 999px;
+            background: #ecfdf5;
+            color: #047857;
+            font-size: .82rem;
+            font-weight: 600;
+        }
+
+        .status-unpaid {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            padding: .3rem .7rem;
+            border-radius: 999px;
+            background: #fff7ed;
+            color: #c2410c;
+            font-size: .82rem;
+            font-weight: 600;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: .4rem;
+        }
+
+        .dialog-section-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #111827;
+        }
+    "/>
+
+    <ui:define name="maincontent">
+        <div class="page-header">
+
+            <div>
+                <div class="page-eyebrow">
+                    Role-Based Access Control
+                </div>
+
+                <h1 class="page-title">
+                    RBAC Bills
+                </h1>
+
+                <p class="page-description">
+                    Manage shared billing records through role-specific access permissions.
+                    Available actions are validated by the secured REST API.
+                </p>
+            </div>
+
+        </div>
+
+
+        <div class="permission-card">
+
+            <div class="permission-title">
+                <i class="pi pi-shield mr-2"></i>
+                Your Access
+            </div>
+
+            <div class="permission-text">
+
+                <strong>User:</strong>
+                #{loginSession.username}
+
+                <br/>
+
+                <h:panelGroup rendered="#{loginSession.hasRole('ActiveStudent')}">
+                    <strong>Role:</strong> ActiveStudent
+                    ·
+                    <strong>Permissions:</strong> View, Create, Update
+                </h:panelGroup>
+
+                <h:panelGroup rendered="#{loginSession.hasRole('Accounting')}">
+                    <strong>Role:</strong> Accounting
+                    ·
+                    <strong>Permissions:</strong> View, Create
+                </h:panelGroup>
+
+                <h:panelGroup rendered="#{loginSession.hasRole('Executive')}">
+                    <strong>Role:</strong> Executive
+                    ·
+                    <strong>Permissions:</strong> View, Delete
+                </h:panelGroup>
+
+            </div>
+
+        </div>
+
+
+        <div class="data-card">
+
+            <h:form id="form">
+
+                <p:growl id="growl" showDetail="true">
+                    <p:autoUpdate/>
+                </p:growl>
+
+
+                <div class="flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+
+                    <div>
+                        <div class="text-xl font-bold">
+                            Billing Records
+                        </div>
+
+                        <div class="text-600 text-sm mt-1">
+                            Shared records protected by RBAC policies.
+                        </div>
+                    </div>
+
+                    <p:commandButton
+                            id="newButton"
+                            value="New Bill"
+                            icon="pi pi-plus"
+                            actionListener="#{currentBillRbacCrudView.onOpenNew}"
+                            update=":dialogs:manage-BillRbac-content"
+                            oncomplete="PF('manageBillRbacDialog').show()"
+                            styleClass="ui-button-primary">
+
+                        <p:resetInput target=":dialogs:manage-BillRbac-content"/>
+
+                    </p:commandButton>
+
+                </div>
+
+
+                <p:dataTable
+                        id="dt-BillRbacs"
+                        widgetVar="dtBillRbacs"
+                        value="#{currentBillRbacCrudView.billRbacs}"
+                        var="currentItem"
+                        reflow="true"
+                        selection="#{currentBillRbacCrudView.selectedBillRbac}"
+                        rowKey="#{currentItem.id}"
+                        paginator="true"
+                        rows="10"
+                        paginatorPosition="bottom"
+                        stripedRows="true">
+
+                    <f:facet name="header">
+
+                        <div class="BillRbacs-table-header">
+
+                            <span class="table-title">
+                                All Bills
+                            </span>
+
+                            <span class="filter-container ui-input-icon-left">
+                                <i class="pi pi-search"></i>
+
+                                <p:inputText
+                                        id="globalFilter"
+                                        onkeyup="PF('dtBillRbacs').filter()"
+                                        placeholder="Search bills"/>
+                            </span>
+
+                        </div>
+
+                    </f:facet>
+
+
+                    <p:column
+                            headerText="Payee"
+                            filterBy="#{currentItem.payeeName}">
+
+                        <div class="font-semibold">
+                            #{currentItem.payeeName}
+                        </div>
+
+                    </p:column>
+
+
+                    <p:column headerText="Amount">
+
+                        <h:outputText value="#{currentItem.paymentDue}">
+                            <f:convertNumber
+                                    type="currency"
+                                    currencySymbol="$"
+                                    minFractionDigits="2"
+                                    maxFractionDigits="2"/>
+                        </h:outputText>
+
+                    </p:column>
+
+
+                    <p:column headerText="Due Date">
+
+                        <h:outputText value="#{currentItem.dueDate}"/>
+
+                    </p:column>
+
+
+                    <p:column headerText="Status">
+
+                        <h:panelGroup rendered="#{currentItem.paid}">
+                            <span class="status-paid">
+                                <i class="pi pi-check-circle"></i>
+                                Paid
+                            </span>
+                        </h:panelGroup>
+
+                        <h:panelGroup rendered="#{not currentItem.paid}">
+                            <span class="status-unpaid">
+                                <i class="pi pi-clock"></i>
+                                Unpaid
+                            </span>
+                        </h:panelGroup>
+
+                    </p:column>
+
+
+                    <p:column
+                            headerText="Actions"
+                            exportable="false"
+                            style="width: 130px">
+
+                        <div class="action-buttons">
+
+                            <p:commandButton
+                                    icon="pi pi-pencil"
+                                    title="Edit"
+                                    update=":dialogs:manage-BillRbac-content"
+                                    oncomplete="PF('manageBillRbacDialog').show()"
+                                    styleClass="rounded-button ui-button-outlined"
+                                    process="@this">
+
+                                <f:setPropertyActionListener
+                                        value="#{currentItem}"
+                                        target="#{currentBillRbacCrudView.selectedBillRbac}"/>
+
+                                <f:setPropertyActionListener
+                                        value="#{currentItem.id}"
+                                        target="#{currentBillRbacCrudView.selectedId}"/>
+
+                                <p:resetInput target=":dialogs:manage-BillRbac-content"/>
+
+                            </p:commandButton>
+
+
+                            <p:commandButton
+                                    icon="pi pi-trash"
+                                    title="Delete"
+                                    process="@this"
+                                    oncomplete="PF('deleteBillRbacDialog').show()"
+                                    styleClass="rounded-button ui-button-danger ui-button-outlined">
+
+                                <f:setPropertyActionListener
+                                        value="#{currentItem}"
+                                        target="#{currentBillRbacCrudView.selectedBillRbac}"/>
+
+                                <f:setPropertyActionListener
+                                        value="#{currentItem.id}"
+                                        target="#{currentBillRbacCrudView.selectedId}"/>
+
+                            </p:commandButton>
+
+                        </div>
+
+                    </p:column>
+
+                </p:dataTable>
+
+            </h:form>
+
+        </div>
+
+
+        <h:form id="dialogs">
+
+            <p:dialog
+                    header="Bill Details"
+                    showEffect="fade"
+                    hideEffect="fade"
+                    modal="true"
+                    widgetVar="manageBillRbacDialog"
+                    responsive="true"
+                    width="520">
+
+                <p:messages id="messages">
+                    <p:autoUpdate/>
+                </p:messages>
+
+
+                <p:outputPanel
+                        id="manage-BillRbac-content"
+                        class="ui-fluid">
+
+                    <p:outputPanel
+                            rendered="#{not empty currentBillRbacCrudView.selectedBillRbac}">
+
+                        <div class="dialog-section-title">
+                            Billing Information
+                        </div>
+
+
+                        <div class="field">
+                            <p:outputLabel
+                                    for="payeeName"
+                                    value="Payee Name"/>
+
+                            <p:inputText
+                                    id="payeeName"
+                                    value="#{currentBillRbacCrudView.selectedBillRbac.payeeName}"
+                                    placeholder="Enter payee name"/>
+                        </div>
+
+
+                        <div class="field">
+                            <p:outputLabel
+                                    for="paymentDue"
+                                    value="Payment Due"/>
+
+                            <p:inputText
+                                    id="paymentDue"
+                                    value="#{currentBillRbacCrudView.selectedBillRbac.paymentDue}"
+                                    placeholder="0.00"/>
+                        </div>
+
+
+                        <div class="field">
+                            <p:outputLabel
+                                    for="dueDate"
+                                    value="Due Date"/>
+
+                            <p:datePicker
+                                    id="dueDate"
+                                    pattern="yyyy-MM-dd"
+                                    showIcon="true"
+                                    value="#{currentBillRbacCrudView.selectedBillRbac.dueDate}"/>
+                        </div>
+
+
+                        <div class="field">
+                            <p:outputLabel
+                                    for="paid"
+                                    value="Payment Status"/>
+
+                            <div class="flex align-items-center gap-2 mt-2">
+
+                                <p:selectBooleanCheckbox
+                                        id="paid"
+                                        value="#{currentBillRbacCrudView.selectedBillRbac.paid}"/>
+
+                                <span>
+                                    Mark as paid
+                                </span>
+
+                            </div>
+                        </div>
+
+                    </p:outputPanel>
+
+                </p:outputPanel>
+
+
+                <f:facet name="footer">
+
+                    <div class="flex justify-content-end gap-2">
+
+                        <p:commandButton
+                                id="generateDataButton"
+                                value="Generate Demo Data"
+                                icon="pi pi-bolt"
+                                actionListener="#{currentBillRbacCrudView.onGenerateData}"
+                                update="manage-BillRbac-content"
+                                process="@this"
+                                styleClass="ui-button-secondary ui-button-outlined"/>
+
+
+                        <p:commandButton
+                                id="cancelButton"
+                                value="Cancel"
+                                icon="pi pi-times"
+                                onclick="PF('manageBillRbacDialog').hide()"
+                                styleClass="ui-button-secondary"
+                                type="button"/>
+
+
+                        <p:commandButton
+                                id="saveButton"
+                                value="Save Bill"
+                                icon="pi pi-check"
+                                actionListener="#{currentBillRbacCrudView.onSave}"
+                                update="manage-BillRbac-content"
+                                process="manage-BillRbac-content @this"/>
+
+                    </div>
+
+                </f:facet>
+
+            </p:dialog>
+
+
+            <p:confirmDialog
+                    widgetVar="deleteBillRbacDialog"
+                    showEffect="fade"
+                    width="360"
+                    message="Are you sure you want to delete this bill?"
+                    header="Delete Bill"
+                    severity="warn">
+
+                <p:commandButton
+                        value="Delete"
+                        icon="pi pi-trash"
+                        actionListener="#{currentBillRbacCrudView.onDelete}"
+                        process="@this"
+                        oncomplete="PF('deleteBillRbacDialog').hide()"
+                        styleClass="ui-button-danger"/>
+
+                <p:commandButton
+                        value="Cancel"
+                        type="button"
+                        styleClass="ui-button-secondary"
+                        icon="pi pi-times"
+                        onclick="PF('deleteBillRbacDialog').hide()"/>
+
+            </p:confirmDialog>
+
+
+            <p:confirmDialog global="true" showEffect="fade" width="300">
+
+                <p:commandButton
+                        value="Yes"
+                        type="button"
+                        styleClass="ui-confirmdialog-yes"
+                        icon="pi pi-check"/>
+
+                <p:commandButton
+                        value="No"
+                        type="button"
+                        styleClass="ui-confirmdialog-no ui-button-secondary"
+                        icon="pi pi-times"/>
+
+            </p:confirmDialog>
+
+        </h:form>
+
+    </ui:define>
+
+</ui:composition>

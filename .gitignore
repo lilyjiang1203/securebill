@@ -1,0 +1,17 @@
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
+
+### Maven ###
+**/target/
+
+### Local HTTP test files ###
+**/*.http
+
+### VS Code ###
+.vscode/
+
+### Mac OS ###
+.DS_Store

@@ -1,0 +1,521 @@
+<ui:composition
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:faces="jakarta.faces"
+        xmlns:ui="jakarta.faces.facelets"
+        xmlns:f="jakarta.faces.core"
+        xmlns:h="jakarta.faces.html"
+        xmlns:pt="jakarta.faces.passthrough"
+        xmlns:cc="jakarta.faces.composite"
+        xmlns:c="jakarta.tags.core"
+        xmlns:fn="jakarta.tags.functions"
+        xmlns:o="http://omnifaces.org/ui"
+        xmlns:of="http://omnifaces.org/functions"
+        xmlns:p="http://primefaces.org/ui"
+        template="/WEB-INF/faces-templates/layout.xhtml">
+
+    <ui:param name="title" value="SecureBill | My Bills"/>
+
+    <ui:param name="internalstyles" value="
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .page-eyebrow {
+            color: #2563eb;
+            font-size: .8rem;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            margin-bottom: .4rem;
+        }
+
+        .page-title {
+            margin: 0;
+            font-size: 2rem;
+            color: #111827;
+        }
+
+        .page-description {
+            color: #6b7280;
+            margin: .5rem 0 0;
+            max-width: 700px;
+            line-height: 1.6;
+        }
+
+        .tenant-card {
+            background: #eff6ff;
+            border: 1px solid #dbeafe;
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .tenant-title {
+            font-weight: 700;
+            color: #1e3a8a;
+            margin-bottom: .4rem;
+        }
+
+        .tenant-text {
+            color: #475569;
+            font-size: .95rem;
+            line-height: 1.5;
+        }
+
+        .data-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            padding: 1.25rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,.05);
+        }
+
+        .BillMultitenants-table-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .table-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .status-paid {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            padding: .3rem .7rem;
+            border-radius: 999px;
+            background: #ecfdf5;
+            color: #047857;
+            font-size: .82rem;
+            font-weight: 600;
+        }
+
+        .status-unpaid {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            padding: .3rem .7rem;
+            border-radius: 999px;
+            background: #fff7ed;
+            color: #c2410c;
+            font-size: .82rem;
+            font-weight: 600;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: .4rem;
+        }
+
+        .dialog-section-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #111827;
+        }
+    "/>
+
+    <ui:define name="maincontent">
+
+        <div class="page-header">
+
+            <div>
+                <div class="page-eyebrow">
+                    Multi-Tenant Data
+                </div>
+
+                <h1 class="page-title">
+                    My Bills
+                </h1>
+
+                <p class="page-description">
+                    Manage your personal billing records.
+                    Each authenticated user can only access data associated with their own account.
+                </p>
+            </div>
+
+        </div>
+
+
+        <div class="tenant-card">
+
+            <div class="tenant-title">
+                <i class="pi pi-lock mr-2"></i>
+                Private Workspace
+            </div>
+
+            <div class="tenant-text">
+                Signed in as
+                <strong>#{loginSession.username}</strong>.
+                Your billing records are isolated from other users through multi-tenant access controls.
+            </div>
+
+        </div>
+
+
+        <div class="data-card">
+
+            <h:form id="form">
+
+                <p:growl id="growl" showDetail="true">
+                    <p:autoUpdate/>
+                </p:growl>
+
+
+                <div class="flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+
+                    <div>
+                        <div class="text-xl font-bold">
+                            My Billing Records
+                        </div>
+
+                        <div class="text-600 text-sm mt-1">
+                            Personal records available only to your authenticated account.
+                        </div>
+                    </div>
+
+
+                    <p:commandButton
+                            id="newButton"
+                            value="New Bill"
+                            icon="pi pi-plus"
+                            actionListener="#{currentBillMultitenantCrudView.onOpenNew}"
+                            update=":dialogs:manage-BillMultitenant-content"
+                            oncomplete="PF('manageBillMultitenantDialog').show()"
+                            styleClass="ui-button-primary">
+
+                        <p:resetInput target=":dialogs:manage-BillMultitenant-content"/>
+
+                    </p:commandButton>
+
+                </div>
+
+
+                <p:dataTable
+                        id="dt-BillMultitenants"
+                        widgetVar="dtBillMultitenants"
+                        value="#{currentBillMultitenantCrudView.billMultitenants}"
+                        var="currentItem"
+                        reflow="true"
+                        selection="#{currentBillMultitenantCrudView.selectedBillMultitenant}"
+                        rowKey="#{currentItem.id}"
+                        paginator="true"
+                        rows="10"
+                        paginatorPosition="bottom"
+                        stripedRows="true">
+
+                    <f:facet name="header">
+
+                        <div class="BillMultitenants-table-header">
+
+                            <span class="table-title">
+                                My Bills
+                            </span>
+
+                            <span class="filter-container ui-input-icon-left">
+                                <i class="pi pi-search"></i>
+
+                                <p:inputText
+                                        id="globalFilter"
+                                        onkeyup="PF('dtBillMultitenants').filter()"
+                                        placeholder="Search bills"/>
+                            </span>
+
+                        </div>
+
+                    </f:facet>
+
+
+                    <p:column
+                            headerText="Payee"
+                            filterBy="#{currentItem.payeeName}">
+
+                        <div class="font-semibold">
+                            #{currentItem.payeeName}
+                        </div>
+
+                    </p:column>
+
+
+                    <p:column headerText="Amount">
+
+                        <h:outputText value="#{currentItem.paymentDue}">
+                            <f:convertNumber
+                                    type="currency"
+                                    currencySymbol="$"
+                                    minFractionDigits="2"
+                                    maxFractionDigits="2"/>
+                        </h:outputText>
+
+                    </p:column>
+
+
+                    <p:column headerText="Due Date">
+                        <h:outputText value="#{currentItem.dueDate}"/>
+                    </p:column>
+
+
+                    <p:column headerText="Status">
+
+                        <h:panelGroup rendered="#{currentItem.paid}">
+                            <span class="status-paid">
+                                <i class="pi pi-check-circle"></i>
+                                Paid
+                            </span>
+                        </h:panelGroup>
+
+                        <h:panelGroup rendered="#{not currentItem.paid}">
+                            <span class="status-unpaid">
+                                <i class="pi pi-clock"></i>
+                                Unpaid
+                            </span>
+                        </h:panelGroup>
+
+                    </p:column>
+
+
+                    <p:column
+                            headerText="Actions"
+                            exportable="false"
+                            style="width: 130px">
+
+                        <div class="action-buttons">
+
+                            <p:commandButton
+                                    icon="pi pi-pencil"
+                                    title="Edit"
+                                    update=":dialogs:manage-BillMultitenant-content"
+                                    oncomplete="PF('manageBillMultitenantDialog').show()"
+                                    styleClass="rounded-button ui-button-outlined"
+                                    process="@this">
+
+                                <f:setPropertyActionListener
+                                        value="#{currentItem}"
+                                        target="#{currentBillMultitenantCrudView.selectedBillMultitenant}"/>
+
+                                <f:setPropertyActionListener
+                                        value="#{currentItem.id}"
+                                        target="#{currentBillMultitenantCrudView.selectedId}"/>
+
+                                <p:resetInput target=":dialogs:manage-BillMultitenant-content"/>
+
+                            </p:commandButton>
+
+
+                            <p:commandButton
+                                    icon="pi pi-trash"
+                                    title="Delete"
+                                    process="@this"
+                                    oncomplete="PF('deleteBillMultitenantDialog').show()"
+                                    styleClass="rounded-button ui-button-danger ui-button-outlined">
+
+                                <f:setPropertyActionListener
+                                        value="#{currentItem}"
+                                        target="#{currentBillMultitenantCrudView.selectedBillMultitenant}"/>
+
+                                <f:setPropertyActionListener
+                                        value="#{currentItem.id}"
+                                        target="#{currentBillMultitenantCrudView.selectedId}"/>
+
+                            </p:commandButton>
+
+                        </div>
+
+                    </p:column>
+
+                </p:dataTable>
+
+            </h:form>
+
+        </div>
+
+
+        <h:form id="dialogs">
+
+            <p:dialog
+                    header="Bill Details"
+                    showEffect="fade"
+                    hideEffect="fade"
+                    modal="true"
+                    widgetVar="manageBillMultitenantDialog"
+                    responsive="true"
+                    width="520">
+
+                <p:messages id="messages">
+                    <p:autoUpdate/>
+                </p:messages>
+
+
+                <p:outputPanel
+                        id="manage-BillMultitenant-content"
+                        class="ui-fluid">
+
+                    <p:outputPanel
+                            rendered="#{not empty currentBillMultitenantCrudView.selectedBillMultitenant}">
+
+                        <div class="dialog-section-title">
+                            Billing Information
+                        </div>
+
+
+                        <div class="field">
+                            <p:outputLabel
+                                    for="payeeName"
+                                    value="Payee Name"/>
+
+                            <p:inputText
+                                    id="payeeName"
+                                    value="#{currentBillMultitenantCrudView.selectedBillMultitenant.payeeName}"
+                                    placeholder="Enter payee name"/>
+                        </div>
+
+
+                        <div class="field">
+                            <p:outputLabel
+                                    for="paymentDue"
+                                    value="Payment Due"/>
+
+                            <p:inputText
+                                    id="paymentDue"
+                                    value="#{currentBillMultitenantCrudView.selectedBillMultitenant.paymentDue}"
+                                    placeholder="0.00"/>
+                        </div>
+
+
+                        <div class="field">
+                            <p:outputLabel
+                                    for="dueDate"
+                                    value="Due Date"/>
+
+                            <p:datePicker
+                                    id="dueDate"
+                                    pattern="yyyy-MM-dd"
+                                    showIcon="true"
+                                    value="#{currentBillMultitenantCrudView.selectedBillMultitenant.dueDate}"/>
+                        </div>
+
+
+                        <div class="field">
+
+                            <p:outputLabel
+                                    for="paid"
+                                    value="Payment Status"/>
+
+                            <div class="flex align-items-center gap-2 mt-2">
+
+                                <p:selectBooleanCheckbox
+                                        id="paid"
+                                        value="#{currentBillMultitenantCrudView.selectedBillMultitenant.paid}"/>
+
+                                <span>
+                                    Mark as paid
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </p:outputPanel>
+
+                </p:outputPanel>
+
+
+                <f:facet name="footer">
+
+                    <div class="flex justify-content-end gap-2">
+
+                        <p:commandButton
+                                id="generateDataButton"
+                                value="Generate Demo Data"
+                                icon="pi pi-bolt"
+                                actionListener="#{currentBillMultitenantCrudView.onGenerateData}"
+                                update="manage-BillMultitenant-content"
+                                process="@this"
+                                styleClass="ui-button-secondary ui-button-outlined"/>
+
+
+                        <p:commandButton
+                                id="cancelButton"
+                                value="Cancel"
+                                icon="pi pi-times"
+                                onclick="PF('manageBillMultitenantDialog').hide()"
+                                styleClass="ui-button-secondary"
+                                type="button"/>
+
+
+                        <p:commandButton
+                                id="saveButton"
+                                value="Save Bill"
+                                icon="pi pi-check"
+                                actionListener="#{currentBillMultitenantCrudView.onSave}"
+                                update="manage-BillMultitenant-content"
+                                process="manage-BillMultitenant-content @this"/>
+
+                    </div>
+
+                </f:facet>
+
+            </p:dialog>
+
+
+            <p:confirmDialog
+                    widgetVar="deleteBillMultitenantDialog"
+                    showEffect="fade"
+                    width="360"
+                    message="Are you sure you want to delete this bill?"
+                    header="Delete Bill"
+                    severity="warn">
+
+                <p:commandButton
+                        value="Delete"
+                        icon="pi pi-trash"
+                        actionListener="#{currentBillMultitenantCrudView.onDelete}"
+                        process="@this"
+                        oncomplete="PF('deleteBillMultitenantDialog').hide()"
+                        styleClass="ui-button-danger"/>
+
+                <p:commandButton
+                        value="Cancel"
+                        type="button"
+                        styleClass="ui-button-secondary"
+                        icon="pi pi-times"
+                        onclick="PF('deleteBillMultitenantDialog').hide()"/>
+
+            </p:confirmDialog>
+
+
+            <p:confirmDialog
+                    global="true"
+                    showEffect="fade"
+                    width="300">
+
+                <p:commandButton
+                        value="Yes"
+                        type="button"
+                        styleClass="ui-confirmdialog-yes"
+                        icon="pi pi-check"/>
+
+                <p:commandButton
+                        value="No"
+                        type="button"
+                        styleClass="ui-confirmdialog-no ui-button-secondary"
+                        icon="pi pi-times"/>
+
+            </p:confirmDialog>
+
+        </h:form>
+
+    </ui:define>
+
+</ui:composition>
