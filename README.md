@@ -51,7 +51,7 @@ The web client obtains an access token from Keycloak and sends it with requests 
                          Keycloak
                      OpenID Connect
                           JWT
-...
+```
 
 The original development environment also integrated Keycloak with Active Directory through LDAP for user authentication and role mapping.
 
@@ -86,6 +86,7 @@ secure-billing-rbac-demo/
 │
 └── dmit2015-assignment07-multitenant-restapi/
     └── Multi-Tenant REST API
+```
 
 ##Local Development
 
