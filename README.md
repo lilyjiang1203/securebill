@@ -99,6 +99,7 @@ RBAC REST API	http://localhost:8181
 Multi-Tenant REST API	http://localhost:8182
 
 ##Environment Variables
+
 The Web Client requires the following environment variables:
 export KEYCLOAK_PROVIDER_URI="http://localhost:8180/realms/dmit2015-realm/"
 export KEYCLOAK_CLIENT_ID="your-keycloak-client-id"
@@ -136,21 +137,29 @@ http://localhost:8080
 
 SecureBill demonstrates two authorization models.
 
+
 ##Role-Based Access Control
+
 
 Operations are authorized according to roles contained in the user's JWT.
 
+
 ##Multi-Tenant Authorization
+
 
 Authenticated users can access only resources associated with their own identity.
 
 Backend authorization remains enforced by the REST APIs even when the user interface hides unavailable actions.
 
+
 ##Screenshots
+
 
 Screenshots of the dashboard, RBAC interface, multi-tenant workspace, and authentication flow will be added here.
 
+
 ##Deployment
+
 
 Azure deployment is planned for the portfolio version of SecureBill.
 
