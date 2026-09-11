@@ -129,12 +129,12 @@ Start Keycloak first.
 cd dmit2015-assignment07-rbac-restapi
 ./mvnw wildfly:run
 ```
-3. Start the Multi-Tenant REST API
+2. Start the Multi-Tenant REST API
 ```bash
 cd dmit2015-assignment07-multitenant-restapi
 ./mvnw wildfly:run
 ```
-5. Start the SecureBill Web Client
+3. Start the SecureBill Web Client
 ```bash
 cd dmit2015-assignment07-restclient
 ./mvnw wildfly:run
