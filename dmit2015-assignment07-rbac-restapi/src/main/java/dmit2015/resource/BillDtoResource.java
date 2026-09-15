@@ -2,6 +2,7 @@ package dmit2015.resource;
 
 
 import common.validation.JavaBeanValidator;
+import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import dmit2015.dto.BillDto;
 import dmit2015.entity.Bill;
@@ -20,6 +21,7 @@ import java.net.URI;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 
 /**
  * This Jakarta RESTful Web Services root resource class provides common REST API endpoints to
@@ -173,5 +175,6 @@ public class BillDtoResource {
         return Response.noContent().build();
 
     }
+
 
 }

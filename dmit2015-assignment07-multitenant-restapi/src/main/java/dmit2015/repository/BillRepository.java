@@ -61,6 +61,16 @@ public class BillRepository {
                 .getResultList();
     }
 
+    public Optional<Bill> findByIdAndUsername(Long billId, String username) {
+        return _entityManager.createQuery(
+                        "SELECT b FROM Bill b WHERE b.id = :id AND b.username = :username",
+                        Bill.class)
+                .setParameter("id", billId)
+                .setParameter("username", username)
+                .getResultStream()
+                .findFirst();
+    }
+
     @Transactional
     public Bill update(@Valid Bill updatedBill) {
         Optional<Bill> optionalBill = findById(updatedBill.getId());

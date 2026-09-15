@@ -11,8 +11,13 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
+import org.eclipse.microprofile.jwt.Claim;
+import org.eclipse.microprofile.jwt.ClaimValue;
+import org.eclipse.microprofile.jwt.Claims;
 
 import java.net.URI;
+import java.util.Optional;
+
 
 /**
  * This Jakarta RESTful Web Services root resource class provides common REST API endpoints to
@@ -27,21 +32,38 @@ public class BillResource {
     @Inject
     private BillRepository _billRepository;
 
+
+    @Inject
+    @Claim(standard = Claims.upn)
+    private ClaimValue<Optional<String>> optionalUsername;
+
+    private String currentUsername() {
+        return optionalUsername.getValue()
+                .orElseThrow(() -> new NotAuthorizedException("User identity is required."));
+    }
+
+
     @GET    // This method only accepts HTTP GET requests.
     public Response listBills() {
-        return Response.ok(_billRepository.findAll()).build();
+        return Response.ok(
+                _billRepository.findByUsername(currentUsername())
+        ).build();
     }
 
     @Path("{id}")
     @GET    // This method only accepts HTTP GET requests.
     public Response findBillById(@PathParam("id") Long id) {
-        Bill existingBill = _billRepository.findById(id).orElseThrow(NotFoundException::new);
+        Bill existingBill = _billRepository
+                .findByIdAndUsername(id, currentUsername())
+                .orElseThrow(NotFoundException::new);
 
         return Response.ok(existingBill).build();
     }
 
     @POST    // This method only accepts HTTP POST requests.
     public Response addBill(Bill newBill, @Context UriInfo uriInfo) {
+
+        newBill.setUsername(currentUsername());
 
         String errorMessage = JavaBeanValidator.validateBean(newBill);
         if (errorMessage != null) {
@@ -90,7 +112,7 @@ public class BillResource {
         }
 
         Bill existingBill = _billRepository
-                .findById(id)
+                .findByIdAndUsername(id, currentUsername())
                 .orElseThrow(NotFoundException::new);
 
         existingBill.setVersion(updatedBill.getVersion());
@@ -123,7 +145,7 @@ public class BillResource {
     public Response delete(@PathParam("id") Long id) {
 
         Bill existingBill = _billRepository
-                .findById(id)
+                .findByIdAndUsername(id, currentUsername())
                 .orElseThrow(NotFoundException::new);
 
         try {
