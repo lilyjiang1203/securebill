@@ -7,7 +7,7 @@ import jakarta.ws.rs.core.MediaType;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
 @RequestScoped
-@RegisterRestClient(baseUri = "http://localhost:8180/realms/dmit2015-realm/protocol/openid-connect/token")
+@RegisterRestClient(configKey = "keycloak-login")
 public interface KeycloakLoginMpRestClient {
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)

@@ -12,7 +12,7 @@ import java.util.Optional;
 
 @RequestScoped
 @RegisterProvider(BadRequestResponseMapper.class)
-@RegisterRestClient(baseUri = "http://localhost:8181/restapi/BillDtos")
+@RegisterRestClient(configKey = "rbac-api")
 public interface BillRbacMpRestClient {
 
     @POST

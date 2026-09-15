@@ -13,7 +13,7 @@ import java.util.Optional;
 
 @RequestScoped
 @RegisterProvider(BadRequestResponseMapper.class)
-@RegisterRestClient(baseUri = "http://localhost:8182/restapi/BillDtos")
+@RegisterRestClient(configKey = "multitenant-api")
 public interface BillMultitenantMpRestClient {
 
     @POST

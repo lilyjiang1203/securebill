@@ -16,6 +16,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Random;
 import java.util.random.RandomGenerator;
 
 /**
@@ -50,6 +51,8 @@ public class BillRbacCrudView implements Serializable {
     @Getter
     private List<BillRbac> billRbacs;
 
+
+    private final Random random = new Random();
     /**
      * Fetch all BillRbac from the REST API.
      * <p>
@@ -90,7 +93,9 @@ public class BillRbacCrudView implements Serializable {
             var faker = new Faker();
             selectedBillRbac.setPayeeName(faker.company().name());
             selectedBillRbac.setDueDate(LocalDate.now().plusWeeks(2));
-            selectedBillRbac.setPaymentDue(BigDecimal.valueOf(RandomGenerator.getDefault().nextDouble(2, 100)));
+            selectedBillRbac.setPaymentDue(
+                    BigDecimal.valueOf(random.nextDouble(2, 100))
+            );
         } catch (Exception e) {
             Messages.addGlobalError("Error generating data {0}", e.getMessage());
         }

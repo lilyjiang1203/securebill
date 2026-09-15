@@ -16,7 +16,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.random.RandomGenerator;
+import java.util.Random;
 
 /**
  * This Jakarta Faces backing bean class contains the data and event handlers
@@ -49,6 +49,9 @@ public class BillMultitenantCrudView implements Serializable {
      */
     @Getter
     private List<BillMultitenant> billMultitenants;
+
+
+    private final Random random = new Random();
 
     /**
      * Fetch all BillMultitenant from the REST API.
@@ -90,7 +93,9 @@ public class BillMultitenantCrudView implements Serializable {
             var faker = new Faker();
             selectedBillMultitenant.setPayeeName(faker.company().name());
             selectedBillMultitenant.setDueDate(LocalDate.now().plusWeeks(2));
-            selectedBillMultitenant.setPaymentDue(BigDecimal.valueOf(RandomGenerator.getDefault().nextDouble(2, 100)));
+            selectedBillMultitenant.setPaymentDue(
+                    BigDecimal.valueOf(random.nextDouble(2, 100))
+            );
 
         } catch (Exception e) {
             Messages.addGlobalError("Error generating data {0}", e.getMessage());

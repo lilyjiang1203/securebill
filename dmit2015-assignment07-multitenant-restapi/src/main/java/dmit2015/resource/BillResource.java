@@ -102,7 +102,7 @@ public class BillResource {
         if (!id.equals(updatedBill.getId())) {
             throw new BadRequestException();
         }
-
+        updatedBill.setUsername(currentUsername());
         String errorMessage = JavaBeanValidator.validateBean(updatedBill);
         if (errorMessage != null) {
             return Response
