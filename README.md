@@ -73,7 +73,7 @@ The original development environment integrated Keycloak with Microsoft Active D
 
 For the portfolio deployment, the authentication layer can use dedicated demonstration users without requiring an external Windows Server domain controller.
 
-Technology Stack
+## Technology Stack
 Java 21
 Jakarta EE 10
 Jakarta Faces
@@ -92,7 +92,7 @@ H2 Database
 Podman
 Podman Compose
 
-Project Structure
+## Project Structure
 secure-billing-rbac-demo/
 │
 ├── dmit2015-assignment07-restclient/
@@ -110,11 +110,11 @@ secure-billing-rbac-demo/
 └── compose.yaml
     └── Local multi-container orchestration
 
-Local Containerized Development
+## Local Containerized Development
 
 The local containerized environment uses the following services:
 
-Service	URL
+## Service	URL
 SecureBill Web Client	http://localhost:8081
 Keycloak	http://localhost:8180
 RBAC REST API	http://localhost:8080
@@ -123,7 +123,7 @@ Environment Variables
 
 Configuration is environment-based so that local, containerized, and cloud environments can use different service addresses without changing application code.
 
-Web Client
+## Web Client
 KEYCLOAK_PROVIDER_URI
 KEYCLOAK_TOKEN_URL
 KEYCLOAK_CLIENT_ID
@@ -131,7 +131,7 @@ KEYCLOAK_CLIENT_SECRET
 RBAC_API_URL
 MULTITENANT_API_URL
 
-Secured REST APIs
+## Secured REST APIs
 KEYCLOAK_JWKS_URI
 KEYCLOAK_ISSUER
 
@@ -139,24 +139,24 @@ Sensitive values such as the Keycloak client secret are not stored directly in s
 
 Local HTTP test files and other sensitive development artifacts are excluded from source control.
 
-Running with Podman Compose
+## Running with Podman Compose
 
 Before starting the application, set the Keycloak client secret:
 export KEYCLOAK_CLIENT_SECRET="your-current-keycloak-client-secret"
 
-Start all services:
+## Start all services:
 podman-compose up
 
-To run the containers in the background:
+## To run the containers in the background:
 podman-compose up -d
 
-Stop the environment:
+## Stop the environment:
 podman-compose down
 
-After startup, open:
+## After startup, open:
 http://localhost:8081
 
-The Compose environment starts:
+## The Compose environment starts:
 
 Keycloak
 RBAC REST API
@@ -165,7 +165,7 @@ SecureBill Web Client
 
 The Keycloak realm is imported automatically from the local realm export.
 
-Running Services Individually
+## Running Services Individually
 
 The individual Jakarta EE modules can also be run directly with Maven.
 
@@ -181,17 +181,17 @@ SecureBill Web Client
 cd dmit2015-assignment07-restclient
 ./mvnw wildfly:run
 
-Security Design
+## Security Design
 
 SecureBill demonstrates two different authorization models.
 
-Role-Based Access Control
+## Role-Based Access Control
 
 RBAC permissions are enforced by the REST API based on roles contained in the authenticated JWT.
 
 The UI may hide unavailable actions for usability, but backend authorization remains the authoritative security control.
 
-Multi-Tenant Authorization
+## Multi-Tenant Authorization
 
 Multi-tenant records are isolated by authenticated identity.
 
@@ -200,7 +200,7 @@ For list operations, only records belonging to the current authenticated user ar
 For individual resource operations, the API validates both:
 resource ID
 +
-authenticated username
+## authenticated username
 
 before allowing access.
 
@@ -208,21 +208,22 @@ This prevents insecure direct object reference-style access to another user's bi
 
 For create and update operations, the username is derived from the JWT rather than trusted from the submitted request body.
 
-Security Testing
+## Security Testing
 
 The following authorization scenarios were verified during development:
 
-RBAC
+## RBAC
 ActiveStudent: Read ✅ Create ✅ Update ✅ Delete ❌
 Accounting: Read ✅ Create ✅ Update ❌ Delete ❌
 Executive: Read ✅ Create ❌ Update ❌ Delete ✅
-Multi-Tenant
+## Multi-Tenant
 User can view their own records ✅
 User cannot retrieve another user's record by ID ✅
 User cannot update another user's record ✅
 User cannot delete another user's record ✅
 Forged username values in create requests are overridden by authenticated JWT identity ✅
-Screenshots
+
+## Screenshots
 
 Screenshots of the following application views will be added:
 
@@ -239,7 +240,7 @@ Azure deployment is planned as the next stage of the SecureBill portfolio projec
 
 A live demo link will be added after deployment.
 
-Project Background
+## Project Background
 
 SecureBill was originally developed as a secure REST API and access-control academic project.
 
