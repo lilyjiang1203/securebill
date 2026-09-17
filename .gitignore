@@ -14,4 +14,8 @@
 .vscode/
 
 ### Mac OS ###
-.DS_Store
+.DS_Storekeycloak-export/
+keycloak-data-backup/
+
+keycloak-export/
+keycloak-data-backup/

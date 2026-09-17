@@ -1,0 +1,51 @@
+services:
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: dmit2015-keycloak
+    command:
+      - start-dev
+      - --import-realm
+    ports:
+      - "8180:8080"
+    volumes:
+      - ./keycloak-export:/opt/keycloak/data/import:Z
+
+  rbac-api:
+    image: localhost/securebill-rbac-api:latest
+    container_name: securebill-rbac-api
+    ports:
+      - "8080:8080"
+    environment:
+      KEYCLOAK_JWKS_URI: http://host.containers.internal:8180/realms/dmit2015-realm/protocol/openid-connect/certs
+      KEYCLOAK_ISSUER: http://host.containers.internal:8180/realms/dmit2015-realm
+    depends_on:
+      - keycloak
+
+  multitenant-api:
+    image: localhost/securebill-multitenant-api:latest
+    container_name: securebill-multitenant-api
+    ports:
+      - "8082:8080"
+    environment:
+      KEYCLOAK_JWKS_URI: http://host.containers.internal:8180/realms/dmit2015-realm/protocol/openid-connect/certs
+      KEYCLOAK_ISSUER: http://host.containers.internal:8180/realms/dmit2015-realm
+    depends_on:
+      - keycloak
+
+  web:
+    image: localhost/securebill-web:latest
+    container_name: securebill-web
+    ports:
+      - "8081:8080"
+    environment:
+      KEYCLOAK_PROVIDER_URI: http://host.containers.internal:8180/realms/dmit2015-realm/
+      KEYCLOAK_TOKEN_URL: http://host.containers.internal:8180/realms/dmit2015-realm/protocol/openid-connect/token
+      KEYCLOAK_CLIENT_ID: dmit2015-assignment07-jwt-client
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+      RBAC_API_URL: http://host.containers.internal:8080/restapi/BillDtos
+      MULTITENANT_API_URL: http://host.containers.internal:8082/restapi/Bills
+    depends_on:
+      - keycloak
+      - rbac-api
+      - multitenant-api
