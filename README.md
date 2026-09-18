@@ -1,4 +1,4 @@
-### SecureBill
+<img width="1268" height="674" alt="image" src="https://github.com/user-attachments/assets/ad29b39a-22ca-42e3-a5e5-8ad4e0426c3b" />### SecureBill
 
 SecureBill is a Jakarta EE web application that demonstrates secure billing workflows using OpenID Connect authentication, JWT-based authorization, role-based access control (RBAC), and multi-tenant data isolation.
 
@@ -201,6 +201,15 @@ The portfolio deployment uses Azure-hosted Keycloak.
 
               Role-Based REST Authorization
 ```
+
+# Deployment Architecture
+
+The portfolio version uses a hybrid deployment model:
+
+- Jakarta EE applications are containerized locally using Podman Compose.
+- Keycloak authentication is hosted using Azure Container Apps.
+- JWT-based authentication allows secure communication between services.
+  
 ## Technology Stack
 # Backend
 Java 21
@@ -425,6 +434,39 @@ Screenshots demonstrate:
 User can access their own billing records
 User cannot access another user's records
 Backend authorization prevents unauthorized resource access
+
+# Azure Keycloak Deployment
+Keycloak authentication service is deployed using Azure Container Apps.
+<img width="1268" height="674" alt="image" src="https://github.com/user-attachments/assets/58e6c766-98f3-4fb3-ab68-ccc4becae847" />
+
+
+## Deployment
+
+SecureBill is deployed using containerized Jakarta EE services.
+
+Architecture:
+```text
+Browser
+ |
+ SecureBill Web Client
+ |
+ REST APIs
+ |
+ Keycloak Authentication
+```
+
+## Container Deployment
+
+<img width="1039" height="656" alt="image" src="https://github.com/user-attachments/assets/014f0608-237b-4676-94cf-c09f7785bf6c" />
+
+Keycloak Authentication Service
+
+<img width="1274" height="668" alt="image" src="https://github.com/user-attachments/assets/e6a31c2b-2680-4a20-9f60-d88efd200d4c" />
+
+Application Running
+
+<img width="1079" height="660" alt="image" src="https://github.com/user-attachments/assets/4dd133c4-8f90-4c29-bd05-6c9912d16c27" />
+
 
 ## Future Improvements
 
