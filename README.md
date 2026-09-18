@@ -1,99 +1,241 @@
-# SecureBill
+### SecureBill
 
-SecureBill is a Jakarta EE web application that demonstrates secure billing workflows using role-based access control (RBAC), JWT authentication, and multi-tenant data isolation.
+SecureBill is a Jakarta EE web application that demonstrates secure billing workflows using OpenID Connect authentication, JWT-based authorization, role-based access control (RBAC), and multi-tenant data isolation.
 
-The project includes:
+The project was originally developed as an academic security application and later enhanced into a portfolio project with:
 
-- Jakarta Faces / PrimeFaces Web Client
-- RBAC REST API
-- Multi-Tenant REST API
-- Keycloak authentication and authorization
-- Podman-based containerized local deployment
+Keycloak Identity and Access Management (IAM)
+JWT authentication and authorization
+Backend-enforced RBAC
+Multi-tenant security controls
+Containerized deployment using Podman
+Cloud-ready configuration for Azure deployment
 
 ## Features
+Role-Based Access Control (RBAC)
 
-### Role-Based Access Control
+SecureBill implements authorization based on roles provided by Keycloak JWT claims.
 
-SecureBill supports different permissions based on user roles.
+Supported roles:
 
-| Role | View | Create | Update | Delete |
-|---|---:|---:|---:|---:|
-| ActiveStudent | ✅ | ✅ | ✅ | ❌ |
-| Accounting | ✅ | ✅ | ❌ | ❌ |
-| Executive | ✅ | ❌ | ❌ | ✅ |
+Role	View	Create	Update	Delete
+ActiveStudent	✅	✅	✅	❌
+Accounting	✅	✅	❌	❌
+Exclusive	✅	❌	❌	✅
 
-Authorization is enforced by the secured REST API using JWT claims and Jakarta Security `@RolesAllowed`.
+Authorization is enforced at the REST API layer using:
 
-### Multi-Tenant Data Isolation
+Jakarta Security @RolesAllowed
+JWT role claims
+Backend authorization checks
 
-Authenticated users can manage their own billing records while remaining isolated from other users' data.
+The frontend may hide unavailable actions for better user experience, but the backend remains the final security boundary.
 
-Each bill is associated with the authenticated identity derived from the JWT.
+## Authentication and Identity Management
 
-The API prevents users from:
+SecureBill uses Keycloak as the Identity Provider (IdP).
 
-- reading another user's bill
-- updating another user's bill
-- deleting another user's bill
-- assigning records to another username through a forged request payload
+Authentication is implemented using:
 
-Tenant identity is determined by the backend from the authenticated JWT rather than trusted from client input.
+OpenID Connect (OIDC)
+OAuth 2.0 token flow
+JSON Web Tokens (JWT)
 
-### Authentication
+Authentication workflow:
+```text
+User
+ |
+ | username/password
+ |
+ v
+SecureBill Web Client
+ |
+ | OpenID Connect Token Request
+ |
+ v
+Keycloak Identity Provider
+ |
+ | JWT Access Token
+ |
+ v
+Secure REST APIs
+```
+The issued JWT contains identity and authorization information, including:
 
-Authentication is handled through Keycloak using OpenID Connect and JWT.
+username
+email
+realm roles
 
-The web client obtains an access token from Keycloak and includes the bearer token when calling the secured REST APIs.
+Example JWT role claim:
+```json
+{
+  "realm_access": {
+    "roles": [
+      "ActiveStudent"
+    ]
+  }
+}
+```
+The backend validates JWT signatures using Keycloak's JWKS endpoint before allowing access to protected resources.
+
+## Keycloak Configuration
+# Realm
+dmit2015-realm
+
+# Client
+securebill-jwt-client
+
+Protocol:
+
+OpenID Connect
+
+Authentication:
+
+Client ID + Client Secret
+
+Configured Realm Roles:
+
+Role	Description
+ActiveStudent	Create and manage permitted billing records
+Accounting	View and create billing records
+Exclusive	Manage delete operations
+
+## Multi-Tenant Data Isolation
+
+SecureBill demonstrates tenant isolation by ensuring users can only access their own billing data.
+
+Each billing record is associated with the authenticated identity extracted from the JWT.
+
+The API prevents:
+
+Reading another user's billing records
+Updating another user's records
+Deleting another user's records
+Assigning records to another username through forged requests
+
+The authenticated username is determined by:
+```text
+JWT Identity
+     |
+     v
+Backend Security Context
+     |
+     v
+Tenant Ownership Validation
+```
+Client-submitted usernames are never trusted.
+
+## Security Design
+
+SecureBill demonstrates multiple security principles.
+
+Identity and Authentication
+
+Implemented:
+
+Centralized identity management using Keycloak
+OpenID Connect authentication
+JWT-based identity propagation
+Secure token validation
+
+## Authorization
+
+Implemented:
+
+Role-Based Access Control (RBAC)
+Backend authorization enforcement
+JWT role claim validation
+Protected REST endpoints
+
+## Data Protection
+
+Implemented:
+
+Server-side tenant verification
+Ownership validation before CRUD operations
+Protection against insecure direct object references (IDOR)
 
 ## Architecture
-
+# Application Architecture
 ```text
-                     SecureBill Web Client
-                  Jakarta Faces + PrimeFaces
-                        Port 8081
-                            |
-              +-------------+-------------+
-              |                           |
-              v                           v
-       RBAC REST API              Multi-Tenant REST API
-         Port 8080                     Port 8082
-              |                           |
-              +-------------+-------------+
-                            |
-                         Keycloak
-                        Port 8180
-                     OpenID Connect
-                          JWT
-                            |
-                     LDAP Federation
-                            |
-                 Active Directory Lab
+                         SecureBill Web Client
+                       Jakarta Faces + PrimeFaces
+                              Port 8081
+                                  |
+                 +----------------+----------------+
+                 |                                 |
+                 v                                 v
+
+          RBAC REST API                 Multi-Tenant REST API
+             Port 8080                       Port 8082
+                 |                                 |
+                 +----------------+----------------+
+                                  |
+                                  v
+
+                         Keycloak Identity Provider
+                              OpenID Connect
+                                  |
+                                  v
+
+                              JWT Token
 ```
-The original development environment integrated Keycloak with Microsoft Active Directory through LDAP for user authentication and identity federation.
+# Cloud Authentication Architecture
 
-For the portfolio deployment, the authentication layer can use dedicated demonstration users without requiring an external Windows Server domain controller.
+The portfolio deployment uses Azure-hosted Keycloak.
+```text
+                 SecureBill Application
 
+                         |
+                         |
+                         v
+
+              Azure Container Apps Keycloak
+
+                         |
+                         |
+                 OpenID Connect / JWT
+
+                         |
+                         v
+
+              Role-Based REST Authorization
+```
 ## Technology Stack
+# Backend
 Java 21
 Jakarta EE 10
+Jakarta REST
 Jakarta Faces
 PrimeFaces
 PrimeFlex
 OmniFaces
-Jakarta REST
 Jakarta Persistence
 Hibernate
 MicroProfile JWT
 MicroProfile Config
+# Identity and Security
 Keycloak
+OpenID Connect
+OAuth 2.0
+JWT
+RBAC
+LDAP Federation
+# Application Server
 WildFly
-Maven
+# Database
 H2 Database
+# Containerization
 Podman
 Podman Compose
+# Cloud
+Azure Container Apps
+Azure-hosted Keycloak
 
 ## Project Structure
+```text
 secure-billing-rbac-demo/
+
 │
 ├── dmit2015-assignment07-restclient/
 │   └── SecureBill Web Client
@@ -105,152 +247,205 @@ secure-billing-rbac-demo/
 │   └── Multi-Tenant REST API
 │
 ├── keycloak-export/
-│   └── Keycloak realm configuration for local container startup
+│   └── Keycloak realm configuration
 │
 └── compose.yaml
-    └── Local multi-container orchestration
+    └── Container orchestration configuration
+```
 
-## Local Containerized Development
+## Containerized Development Environment
 
-The local containerized environment uses the following services:
+SecureBill runs as multiple isolated containers.
 
-## Service	URL
-SecureBill Web Client	http://localhost:8081
-Keycloak	http://localhost:8180
-RBAC REST API	http://localhost:8080
-Multi-Tenant REST API	http://localhost:8082
-Environment Variables
+Service	Purpose	Port
+securebill-web	Jakarta Faces frontend	8081
+securebill-rbac-api	RBAC authorization API	8080
+securebill-multitenant-api	Multi-tenant billing API	8082
+Keycloak	Identity Provider	8180
 
-Configuration is environment-based so that local, containerized, and cloud environments can use different service addresses without changing application code.
+## Environment Configuration
 
-## Web Client
+Configuration is managed through environment variables.
+
+This allows different configurations for:
+
+local development
+container deployment
+cloud deployment
+# Web Client
 KEYCLOAK_PROVIDER_URI
 KEYCLOAK_TOKEN_URL
 KEYCLOAK_CLIENT_ID
 KEYCLOAK_CLIENT_SECRET
 RBAC_API_URL
 MULTITENANT_API_URL
-
-## Secured REST APIs
+# REST APIs
 KEYCLOAK_JWKS_URI
 KEYCLOAK_ISSUER
 
-Sensitive values such as the Keycloak client secret are not stored directly in source code.
-
-Local HTTP test files and other sensitive development artifacts are excluded from source control.
+Sensitive information such as Keycloak client secrets is stored outside source code.
 
 ## Running with Podman Compose
 
-Before starting the application, set the Keycloak client secret:
-export KEYCLOAK_CLIENT_SECRET="your-current-keycloak-client-secret"
-
-## Start all services:
+Set the Keycloak client secret:
+```bash
+export KEYCLOAK_CLIENT_SECRET="your-keycloak-client-secret"
+```
+Start all containers:
+```bash
 podman-compose up
-
-## To run the containers in the background:
+```
+Run in background:
+```bash
 podman-compose up -d
-
-## Stop the environment:
+```
+Stop:
+```bash
 podman-compose down
-
-## After startup, open:
+```
+Application:
+```text
 http://localhost:8081
-
-## The Compose environment starts:
-
-Keycloak
-RBAC REST API
-Multi-Tenant REST API
-SecureBill Web Client
-
-The Keycloak realm is imported automatically from the local realm export.
-
-## Running Services Individually
-
-The individual Jakarta EE modules can also be run directly with Maven.
-
-RBAC REST API
-cd dmit2015-assignment07-rbac-restapi
-./mvnw wildfly:run
-
-Multi-Tenant REST API
-cd dmit2015-assignment07-multitenant-restapi
-./mvnw wildfly:run
-
-SecureBill Web Client
-cd dmit2015-assignment07-restclient
-./mvnw wildfly:run
-
-## Security Design
-
-SecureBill demonstrates two different authorization models.
-
-## Role-Based Access Control
-
-RBAC permissions are enforced by the REST API based on roles contained in the authenticated JWT.
-
-The UI may hide unavailable actions for usability, but backend authorization remains the authoritative security control.
-
-## Multi-Tenant Authorization
-
-Multi-tenant records are isolated by authenticated identity.
-
-For list operations, only records belonging to the current authenticated user are returned.
-
-For individual resource operations, the API validates both:
-resource ID
-+
-## authenticated username
-
-before allowing access.
-
-This prevents insecure direct object reference-style access to another user's billing records.
-
-For create and update operations, the username is derived from the JWT rather than trusted from the submitted request body.
+```
 
 ## Security Testing
+# Authentication Testing
 
-The following authorization scenarios were verified during development:
+Verified:
 
-## RBAC
-ActiveStudent: Read ✅ Create ✅ Update ✅ Delete ❌
-Accounting: Read ✅ Create ✅ Update ❌ Delete ❌
-Executive: Read ✅ Create ❌ Update ❌ Delete ✅
-## Multi-Tenant
-User can view their own records ✅
-User cannot retrieve another user's record by ID ✅
-User cannot update another user's record ✅
-User cannot delete another user's record ✅
-Forged username values in create requests are overridden by authenticated JWT identity ✅
+✅ User authentication through Keycloak
+✅ JWT token generation
+✅ JWT role claims
+✅ Secure API authorization
+
+# RBAC Testing
+
+Verified:
+
+ActiveStudent
+View      ✅
+Create    ✅
+Update    ✅
+Delete    ❌
+
+Accounting
+View      ✅
+Create    ✅
+Update    ❌
+Delete    ❌
+
+Exclusive
+View      ✅
+Create    ❌
+Update    ❌
+Delete    ✅
+
+## Multi-Tenant Security Testing
+
+Verified:
+
+✅ User can access own billing records
+✅ User cannot access another user's records
+✅ User cannot modify another user's records
+✅ User cannot delete another user's records
+✅ Forged username values are ignored
 
 ## Screenshots
 
-Screenshots of the following application views will be added:
+The following screenshots demonstrate SecureBill authentication, authorization, and security controls.
 
-Dashboard
-Login
-RBAC Bills
-Multi-Tenant My Bills
-Role-specific authorization behavior
-Deployment
+---
+## Authentication
 
-The local portfolio version is fully containerized using Podman Compose.
+### Login Page
+<img width="1070" height="628" alt="image" src="https://github.com/user-attachments/assets/d1a83d15-b0d3-4feb-aff1-5fbd57ed1a36" />
 
-Azure deployment is planned as the next stage of the SecureBill portfolio project.
+The SecureBill login page authenticates users through Keycloak OpenID Connect.
 
-A live demo link will be added after deployment.
+---
+### Successful Login
+<img width="1077" height="662" alt="image" src="https://github.com/user-attachments/assets/9d0cfa63-0613-4566-9bb8-3f025e9f7b6e" />
+
+After successful authentication, users are redirected to SecureBill with permissions based on their assigned Keycloak roles.
+
+---
+
+### JWT Token Claims
+<img width="499" height="259" alt="image" src="https://github.com/user-attachments/assets/4cd70794-cfa9-4415-991f-fbef4d97619c" />
+The JWT access token contains authenticated identity information and realm roles issued by Keycloak.
+
+Example:
+
+```json
+{
+  "preferred_username": "active-student",
+  "realm_access": {
+    "roles": [
+      "ActiveStudent"
+    ]
+  }
+}
+```
+
+## Keycloak Configuration
+# Client Configuration
+<img width="1255" height="673" alt="image" src="https://github.com/user-attachments/assets/acd7c7e1-4e25-45ef-8cbf-0f3d9234ad78" />
+
+# User Role Mapping
+<img width="1274" height="671" alt="image" src="https://github.com/user-attachments/assets/2f1f162b-2c0f-443d-9688-430e6a8091d4" />
+
+# Role-Based Access Control (RBAC)
+ActiveStudent Access
+<img width="1075" height="660" alt="image" src="https://github.com/user-attachments/assets/11561ace-8cb3-4f0f-9367-3e651b44d546" />
+ActiveStudent permissions:
+View billing records
+Create billing records
+Update billing records
+Delete operation restricted
+
+Accounting Access
+<img width="1077" height="662" alt="image" src="https://github.com/user-attachments/assets/0f99bf87-5c0e-4381-9f3e-f408fba871f5" />
+
+Accounting permissions:
+View billing records
+Create billing records
+Update/Delete operations restricted
+
+Exclusive Access
+<img width="1074" height="630" alt="image" src="https://github.com/user-attachments/assets/f3d7d3a4-572b-4c0e-a6d2-4033022ab1f9" />
+Exclusive permissions:
+View billing records
+Delete billing records
+Create/Update operations restricted
+
+# Multi-Tenant Security
+
+Screenshots demonstrate:
+
+User can access their own billing records
+User cannot access another user's records
+Backend authorization prevents unauthorized resource access
+
+## Future Improvements
+
+Planned enhancements:
+
+Deploy REST APIs to Azure Container Apps
+Deploy frontend application to cloud hosting
+Replace H2 with production database service
+Add automated security testing
+Add CI/CD pipeline
 
 ## Project Background
 
-SecureBill was originally developed as a secure REST API and access-control academic project.
+SecureBill was developed as a secure billing application focusing on identity management and access control.
 
-It was later refactored into a portfolio application with:
+The project demonstrates practical implementation of:
 
-a redesigned user interface
-environment-based configuration
-JWT role handling
-strengthened multi-tenant isolation
-containerized REST APIs
-containerized WildFly web client
-Podman Compose orchestration
-cloud deployment preparation
+Identity and Access Management (IAM)
+Authentication and Authorization
+OpenID Connect
+JWT security
+RBAC design
+Multi-tenant application security
+Containerized enterprise application deployment
