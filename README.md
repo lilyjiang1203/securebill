@@ -446,23 +446,35 @@ SecureBill is deployed using containerized Jakarta EE services.
 
 Architecture:
 ```text
-Browser
- |
- SecureBill Web Client
- |
- REST APIs
- |
- Keycloak Authentication
+                 Internet
+                    │
+                    ▼
+          SecureBill Web Client
+                    │
+          ┌─────────┴─────────┐
+          ▼                   ▼
+    RBAC REST API       Multi-Tenant API
+      internal              internal
+          │                   │
+          └─────────┬─────────┘
+                    ▼
+                Keycloak
 ```
 
 ## Container Deployment
 
 <img width="1039" height="656" alt="image" src="https://github.com/user-attachments/assets/014f0608-237b-4676-94cf-c09f7785bf6c" />
-
 Keycloak Authentication Service
 
-<img width="1274" height="668" alt="image" src="https://github.com/user-attachments/assets/e6a31c2b-2680-4a20-9f60-d88efd200d4c" />
+<img width="2048" height="1045" alt="image" src="https://github.com/user-attachments/assets/c5cfe203-ea90-4d52-abfe-b73707778f77" />
+Azure Container Apps – RBAC REST API
+TheRBAC REST API is deployed as an Azure Container App and runs within the SecureBill Container Apps Environment.
 
+<img width="2048" height="986" alt="image" src="https://github.com/user-attachments/assets/70bf050f-7444-4d37-b63d-6f77e02391a4" />
+Azure Container Apps – Multi-Tenant REST API
+The Multi-Tenant REST API is deployed as an Azure Container App and runs within the SecureBill Container Apps Environment.
+
+<img width="1274" height="668" alt="image" src="https://github.com/user-attachments/assets/e6a31c2b-2680-4a20-9f60-d88efd200d4c" />
 Application Running
 
 <img width="1079" height="660" alt="image" src="https://github.com/user-attachments/assets/4dd133c4-8f90-4c29-bd05-6c9912d16c27" />
