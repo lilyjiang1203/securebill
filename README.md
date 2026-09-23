@@ -444,19 +444,23 @@ SecureBill is deployed using containerized Jakarta EE services.
 
 Architecture:
 ```text
-                 Internet
-                    │
-                    ▼
-          SecureBill Web Client
-                    │
-          ┌─────────┴─────────┐
-          ▼                   ▼
-    RBAC REST API       Multi-Tenant API
-      internal              internal
-          │                   │
-          └─────────┬─────────┘
-                    ▼
-                Keycloak
+                    Browser
+                       │
+                       ▼
+              ┌────────────────┐
+              │  securebill-web │
+              │    Public       │
+              └───────┬────────┘
+                      │
+          Container Apps Environment
+             ┌────────┴─────────┐
+             ▼                  ▼
+     securebill-rbac-api   securebill-multitenant-api
+          Internal               Internal
+             │                  │
+             └────────┬─────────┘
+                      ▼
+                   Keycloak
 ```
 
 ## Container Deployment
