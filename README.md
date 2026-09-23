@@ -1,5 +1,3 @@
-<img width="1268" height="674" alt="image" src="https://github.com/user-attachments/assets/ad29b39a-22ca-42e3-a5e5-8ad4e0426c3b" />### SecureBill
-
 SecureBill is a Jakarta EE web application that demonstrates secure billing workflows using OpenID Connect authentication, JWT-based authorization, role-based access control (RBAC), and multi-tenant data isolation.
 
 The project was originally developed as an academic security application and later enhanced into a portfolio project with:
