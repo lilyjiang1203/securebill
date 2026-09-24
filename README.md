@@ -10,7 +10,7 @@ Containerized deployment using Podman
 Cloud-ready configuration for Azure deployment
 
 ## Features
-# Role-Based Access Control (RBAC)
+### Role-Based Access Control (RBAC)
 
 SecureBill implements authorization based on roles provided by Keycloak JWT claims.
 
@@ -27,9 +27,9 @@ Authorization is enforced at the REST API layer using:
 - JWT role claims
 - Backend authorization checks
 
-The frontend may hide unavailable actions for better user experience, but the backend remains the final security boundary.
+The frontend may hide unavailable actions for a better user experience, but the backend remains the final security boundary.
 
-# Multi-Tenant Data Isolation
+### Multi-Tenant Data Isolation
 
 SecureBill isolates Bill data based on the authenticated user's identity from the Keycloak JWT.
 
