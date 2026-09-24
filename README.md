@@ -10,7 +10,7 @@ Containerized deployment using Podman
 Cloud-ready configuration for Azure deployment
 
 ## Features
-Role-Based Access Control (RBAC)
+# Role-Based Access Control (RBAC)
 
 SecureBill implements authorization based on roles provided by Keycloak JWT claims.
 
@@ -29,20 +29,20 @@ Authorization is enforced at the REST API layer using:
 
 The frontend may hide unavailable actions for better user experience, but the backend remains the final security boundary.
 
-### Multi-Tenant Data Isolation
+# Multi-Tenant Data Isolation
 
-SecureBill also implements multi-tenant data access based on the authenticated user's identity.
+SecureBill isolates Bill data based on the authenticated user's identity from the Keycloak JWT.
 
-Each Bill is associated with the username (`preferred_username`) from the Keycloak JWT.
+| Role | View | Create | Update | Delete |
+|---|---|---|---|---|
+| ActiveStudent | Own | ✅ | Own | Own |
+| Accounting | All | ✅ | Own | Own |
+| Executive | All | ❌ | Own | Own |
 
-Data access rules:
+Each Bill is associated with the authenticated user's `preferred_username`. 
+The backend assigns the username from the JWT rather than trusting a username supplied by the client request.
 
-- **ActiveStudent** can view, create, update, and delete only their own Bills.
-- **Accounting** can view all Bills, but can update or delete only Bills associated with their own username.
-- **Executive** can view all Bills, but can update or delete only Bills associated with their own username.
-- The username associated with a Bill is assigned by the backend from the authenticated JWT rather than trusted from the client request.
-
-The backend enforces tenant-level data isolation through authenticated user identity and repository queries such as `findByUsername()` and `findByIdAndUsername()`.
+Tenant-level data isolation is enforced by backend authorization checks and repository queries.
 
 ## Authentication and Identity Management
 
