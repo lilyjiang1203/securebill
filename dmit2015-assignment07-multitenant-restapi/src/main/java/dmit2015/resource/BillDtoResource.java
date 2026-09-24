@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 public class BillDtoResource {
 
     @Inject
-    @Claim(standard = Claims.upn)   // The username for the user.
+    @Claim("preferred_username")  // The username for the user.
     private ClaimValue<Optional<String>> optionalUsername;
 
     @Inject
@@ -45,39 +45,54 @@ public class BillDtoResource {
     private BillRepository _billRepository;
 
     @GET
-    @RolesAllowed({"ActiveStudent", "Accounting"})// This method only accepts HTTP GET requests.
+    @RolesAllowed({"ActiveStudent", "Accounting", "Executive"})
     public Response findAllBills() {
         String username = optionalUsername.getValue()
-                .orElseThrow(() -> new InternalServerErrorException("UPN claim is missing"));
+                .orElseThrow(() -> new InternalServerErrorException("Username claim is missing"));
+
         Set<String> groups = optionalGroups.getValue()
                 .orElseGet(Set::of);
 
         List<Bill> bills;
-        if (groups.contains("Accounting")) {
+
+        if (groups.contains("Accounting") || groups.contains("Executive")) {
             bills = _billRepository.findAll();
         } else {
-            // ActiveStudent → 只能看自己的帳單
+            // ActiveStudent → 只能看自己的帐单
             bills = _billRepository.findByUsername(username);
         }
 
         List<BillDto> dtoList = bills.stream()
                 .map(BillMapper.INSTANCE::toDto)
                 .collect(Collectors.toList());
+
         return Response.ok(dtoList).build();
     }
 
+
     @Path("{id}")
-    @GET    // This method only accepts HTTP GET requests.
-    @RolesAllowed("ActiveStudent")
+    @GET
+    @RolesAllowed({"ActiveStudent", "Accounting", "Executive"})
     public Response findBillById(@PathParam("id") Long id) {
 
-        String upn = optionalUsername.getValue()
-                .orElseThrow(() -> new InternalServerErrorException("UPN claim is missing"));
+        String username = optionalUsername.getValue()
+                .orElseThrow(() -> new InternalServerErrorException("Username claim is missing"));
 
-        Bill existingBill = _billRepository.findById(id).orElseThrow(NotFoundException::new);
+        Set<String> groups = optionalGroups.getValue()
+                .orElseGet(Set::of);
 
-        if (!upn.equals(existingBill.getUsername())) {
-            return Response.status(Response.Status.BAD_REQUEST)
+        Bill existingBill = _billRepository
+                .findById(id)
+                .orElseThrow(NotFoundException::new);
+
+        // ActiveStudent 只能查看自己的 Bill
+        // Accounting 和 Executive 可以查看所有 Bill
+        if (groups.contains("ActiveStudent")
+                && !groups.contains("Accounting")
+                && !groups.contains("Executive")
+                && !username.equals(existingBill.getUsername())) {
+
+            return Response.status(Response.Status.FORBIDDEN)
                     .entity("You are not allowed to access this item.")
                     .build();
         }
@@ -91,11 +106,12 @@ public class BillDtoResource {
     @RolesAllowed("ActiveStudent")
     public Response createBill(BillDto dto, @Context UriInfo uriInfo) {
 
-        String upn = optionalUsername.getValue()
-                .orElseThrow(() -> new InternalServerErrorException("UPN claim is missing"));
+        String username = optionalUsername.getValue()
+                .orElseThrow(() -> new InternalServerErrorException("Username claim is missing"));
 
         Bill newBill = BillMapper.INSTANCE.toEntity(dto);
-        newBill.setUsername(upn);
+        newBill.setUsername(username);
+
         String errorMessage = JavaBeanValidator.validateBean(newBill);
         if (errorMessage != null) {
             return Response
@@ -133,8 +149,8 @@ public class BillDtoResource {
     @RolesAllowed("ActiveStudent")
     public Response updateBill(@PathParam("id") Long id, BillDto dto) {
 
-        String upn = optionalUsername.getValue()
-                .orElseThrow(() -> new InternalServerErrorException("UPN claim is missing"));
+        String username = optionalUsername.getValue()
+                .orElseThrow(() -> new InternalServerErrorException("Username claim is missing"));
 
         if (!id.equals(dto.getId())) {
             throw new BadRequestException();
@@ -144,7 +160,7 @@ public class BillDtoResource {
                 .findById(id)
                 .orElseThrow(NotFoundException::new);
 
-        if (!upn.equals(existingBill.getUsername())) {
+        if (!username.equals(existingBill.getUsername())) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("You are not allowed to update this item.")
                     .build();
@@ -166,7 +182,7 @@ public class BillDtoResource {
         existingBill.setPaymentDue(updatedBill.getPaymentDue());
         existingBill.setDueDate(updatedBill.getDueDate());
         existingBill.setPaid(updatedBill.isPaid());
-        existingBill.setUsername(upn);
+        existingBill.setUsername(username);
 
         try {
             _billRepository.update(existingBill);
@@ -193,14 +209,14 @@ public class BillDtoResource {
     @RolesAllowed("ActiveStudent")
     public Response deleteBill(@PathParam("id") Long id) {
 
-        String upn = optionalUsername.getValue()
-                .orElseThrow(() -> new InternalServerErrorException("UPN claim is missing"));
+        String username = optionalUsername.getValue()
+                .orElseThrow(() -> new InternalServerErrorException("Username claim is missing"));
 
         Bill existingBill = _billRepository
                 .findById(id)
                 .orElseThrow(NotFoundException::new);
 
-        if (!upn.equals(existingBill.getUsername())) {
+        if (!username.equals(existingBill.getUsername())) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("You are not allowed to delete this item.")
                     .build();

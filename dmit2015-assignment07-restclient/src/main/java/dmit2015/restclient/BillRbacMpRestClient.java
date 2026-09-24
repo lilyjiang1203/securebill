@@ -13,6 +13,7 @@ import java.util.Optional;
 @RequestScoped
 @RegisterProvider(BadRequestResponseMapper.class)
 @RegisterRestClient(configKey = "rbac-api")
+@Path("BillDtos")
 public interface BillRbacMpRestClient {
 
     @POST

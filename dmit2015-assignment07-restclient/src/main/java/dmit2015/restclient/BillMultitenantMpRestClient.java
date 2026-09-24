@@ -14,6 +14,7 @@ import java.util.Optional;
 @RequestScoped
 @RegisterProvider(BadRequestResponseMapper.class)
 @RegisterRestClient(configKey = "multitenant-api")
+@Path("BillDtos")
 public interface BillMultitenantMpRestClient {
 
     @POST

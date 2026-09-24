@@ -17,16 +17,17 @@ import org.eclipse.microprofile.jwt.Claims;
 
 import java.net.URI;
 import java.util.Optional;
+import java.util.Set;
 
 
 /**
- * This Jakarta RESTful Web Services root resource class provides common REST API endpoints to
+ * This Jakarta Persistence RESTful Web Services root resource class provides common REST API endpoints to
  * perform CRUD operations on Jakarta Persistence entity.
  */
 @ApplicationScoped
-@Path("Bills")                    // All methods of this class are associated this URL path
-@Consumes(MediaType.APPLICATION_JSON)    // All methods this class accept only JSON format data
-@Produces(MediaType.APPLICATION_JSON)    // All methods returns data that has been converted to JSON format
+@Path("Bills")
+@Consumes(MediaType.APPLICATION_JSON)
+@Produces(MediaType.APPLICATION_JSON)
 public class BillResource {
 
     @Inject
@@ -34,8 +35,14 @@ public class BillResource {
 
 
     @Inject
-    @Claim(standard = Claims.upn)
+    @Claim("preferred_username")
     private ClaimValue<Optional<String>> optionalUsername;
+
+
+    @Inject
+    @Claim(standard = Claims.groups)
+    private ClaimValue<Optional<Set<String>>> optionalGroups;
+
 
     private String currentUsername() {
         return optionalUsername.getValue()
@@ -43,24 +50,59 @@ public class BillResource {
     }
 
 
-    @GET    // This method only accepts HTTP GET requests.
+    @GET
     public Response listBills() {
+
+        String username = currentUsername();
+
+        Set<String> groups = optionalGroups.getValue()
+                .orElseGet(Set::of);
+
+        // Accounting and Executive can see all Bills
+        if (groups.contains("Accounting") || groups.contains("Executive")) {
+            return Response.ok(
+                    _billRepository.findAll()
+            ).build();
+        }
+
+        // ActiveStudent can only see their own Bills
         return Response.ok(
-                _billRepository.findByUsername(currentUsername())
+                _billRepository.findByUsername(username)
         ).build();
     }
 
+
     @Path("{id}")
-    @GET    // This method only accepts HTTP GET requests.
+    @GET
     public Response findBillById(@PathParam("id") Long id) {
-        Bill existingBill = _billRepository
-                .findByIdAndUsername(id, currentUsername())
-                .orElseThrow(NotFoundException::new);
+
+        String username = currentUsername();
+
+        Set<String> groups = optionalGroups.getValue()
+                .orElseGet(Set::of);
+
+        Bill existingBill;
+
+        // Accounting and Executive can view any Bill
+        if (groups.contains("Accounting") || groups.contains("Executive")) {
+
+            existingBill = _billRepository
+                    .findById(id)
+                    .orElseThrow(NotFoundException::new);
+
+        } else {
+
+            // ActiveStudent can only view their own Bill
+            existingBill = _billRepository
+                    .findByIdAndUsername(id, username)
+                    .orElseThrow(NotFoundException::new);
+        }
 
         return Response.ok(existingBill).build();
     }
 
-    @POST    // This method only accepts HTTP POST requests.
+
+    @POST
     public Response addBill(Bill newBill, @Context UriInfo uriInfo) {
 
         newBill.setUsername(currentUsername());
@@ -77,32 +119,32 @@ public class BillResource {
             // Persist the new Bill into the database
             _billRepository.add(newBill);
         } catch (Exception ex) {
-            // Return a HTTP status of "500 Internal Server Error" containing the exception message
-            return Response.
-                    serverError()
+            return Response
+                    .serverError()
                     .entity(ex.getMessage())
                     .build();
         }
 
-        // userInfo is injected via @Context parameter to this method
         URI location = uriInfo.getAbsolutePathBuilder()
                 .path(String.valueOf(newBill.getId()))
                 .build();
 
-        // Set the location path of the new entity with its identifier
-        // Returns an HTTP status of "201 Created" if the Bill was successfully persisted
         return Response
                 .created(location)
                 .build();
     }
 
-    @PUT            // This method only accepts HTTP PUT requests.
-    @Path("{id}")    // This method accepts a path parameter and gives it a name of id
+
+    @PUT
+    @Path("{id}")
     public Response updateBill(@PathParam("id") Long id, Bill updatedBill) {
+
         if (!id.equals(updatedBill.getId())) {
             throw new BadRequestException();
         }
+
         updatedBill.setUsername(currentUsername());
+
         String errorMessage = JavaBeanValidator.validateBean(updatedBill);
         if (errorMessage != null) {
             return Response
@@ -129,19 +171,18 @@ public class BillResource {
                     .entity("The data you are trying to update has changed since your last read request.")
                     .build();
         } catch (Exception ex) {
-            // Return an HTTP status of "500 Internal Server Error" containing the exception message
-            return Response.
-                    serverError()
+            return Response
+                    .serverError()
                     .entity(ex.getMessage())
                     .build();
         }
 
-        // Returns an HTTP status "200 OK" and include in the body of the response the object that was updated
         return Response.ok(existingBill).build();
     }
 
-    @DELETE            // This method only accepts HTTP DELETE requests.
-    @Path("{id}")    // This method accepts a path parameter and gives it a name of id
+
+    @DELETE
+    @Path("{id}")
     public Response delete(@PathParam("id") Long id) {
 
         Bill existingBill = _billRepository
@@ -149,17 +190,14 @@ public class BillResource {
                 .orElseThrow(NotFoundException::new);
 
         try {
-            _billRepository.delete(existingBill);    // Removes the Bill from being persisted
+            _billRepository.delete(existingBill);
         } catch (Exception ex) {
-            // Return a HTTP status of "500 Internal Server Error" containing the exception message
             return Response
                     .serverError()
-                    .encoding(ex.getMessage())
+                    .entity(ex.getMessage())
                     .build();
         }
 
-        // Returns an HTTP status "204 No Content" to indicated that the resource was deleted
         return Response.noContent().build();
     }
-
 }

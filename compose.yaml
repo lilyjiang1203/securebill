@@ -8,6 +8,9 @@ services:
       - --import-realm
     ports:
       - "8180:8080"
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: Admin12345!
     volumes:
       - ./keycloak-export:/opt/keycloak/data/import:Z
 
@@ -39,13 +42,12 @@ services:
     ports:
       - "8081:8080"
     environment:
-      KEYCLOAK_PROVIDER_URI: http://host.containers.internal:8180/realms/dmit2015-realm/
-      KEYCLOAK_TOKEN_URL: http://host.containers.internal:8180/realms/dmit2015-realm/protocol/openid-connect/token
-      KEYCLOAK_CLIENT_ID: dmit2015-assignment07-jwt-client
+      KEYCLOAK_PROVIDER_URI: https://securebill-keycloak.calmtree-49de5411.westus2.azurecontainerapps.io/realms/dmit2015-realm/
+      KEYCLOAK_TOKEN_URL: https://securebill-keycloak.calmtree-49de5411.westus2.azurecontainerapps.io/realms/dmit2015-realm/protocol/openid-connect/token
+      KEYCLOAK_CLIENT_ID: securebill-jwt-client
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
-      RBAC_API_URL: http://host.containers.internal:8080/restapi/BillDtos
-      MULTITENANT_API_URL: http://host.containers.internal:8082/restapi/Bills
+      RBAC_API_URL: http://host.containers.internal:8080/restapi
+      MULTITENANT_API_URL: http://host.containers.internal:8082/restapi
     depends_on:
-      - keycloak
       - rbac-api
       - multitenant-api

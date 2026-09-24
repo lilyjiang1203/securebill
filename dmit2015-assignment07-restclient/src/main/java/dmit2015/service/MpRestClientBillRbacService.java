@@ -48,7 +48,17 @@ public class MpRestClientBillRbacService implements BillRbacService {
     @Override
     public List<BillRbac> getAllBillDtos() {
         String authorizationHeader = _loginSession.getAuthorization();
-        return restClient.findAll(authorizationHeader);
+
+        System.out.println("DEBUG: getAllBillDtos() called");
+        System.out.println("DEBUG: Authorization present = "
+                + (authorizationHeader != null && !authorizationHeader.isBlank()));
+
+        List<BillRbac> bills = restClient.findAll(authorizationHeader);
+
+        System.out.println("DEBUG: RBAC returned "
+                + (bills == null ? "null" : bills.size() + " bills"));
+
+        return bills;
     }
 
     @Override

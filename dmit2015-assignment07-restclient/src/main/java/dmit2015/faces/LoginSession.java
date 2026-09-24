@@ -80,6 +80,7 @@ public class LoginSession implements Serializable {
                          Json.createReader(new StringReader(payloadJson))) {
 
                 JsonObject payload = reader.readObject();
+                System.out.println("JWT PAYLOAD = " + payload);
 
                 if (!payload.containsKey("realm_access")) {
                     return Collections.emptyList();
@@ -94,7 +95,7 @@ public class LoginSession implements Serializable {
                 if (roles == null) {
                     return Collections.emptyList();
                 }
-
+                System.out.println("DEBUG JWT roles = " + roles);
                 return roles.stream()
                         .map(value -> value.toString().replace("\"", ""))
                         .toList();

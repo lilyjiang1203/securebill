@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.random.RandomGenerator;
 
+
 @Entity
 @Getter
 @Setter
@@ -81,7 +82,9 @@ public class Bill {
         Bill currentBill = new Bill();
         currentBill.setPayeeName(faker.company().name());
         currentBill.setDueDate(LocalDate.now().plusWeeks(2));
-        currentBill.setPaymentDue(BigDecimal.valueOf(RandomGenerator.getDefault().nextDouble(2, 100)));
+        currentBill.setPaymentDue(
+                BigDecimal.valueOf(2 + Math.random() * 98)
+        );
         return currentBill;
     }
 }

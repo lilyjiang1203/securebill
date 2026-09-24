@@ -11,6 +11,7 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
+import jakarta.annotation.security.RolesAllowed;
 
 import java.net.URI;
 
@@ -28,12 +29,14 @@ public class BillResource {
     private BillRepository _billRepository;
 
     @GET    // This method only accepts HTTP GET requests.
+    @RolesAllowed({"ActiveStudent", "Accounting", "Exclusive"})
     public Response listBills() {
         return Response.ok(_billRepository.findAll()).build();
     }
 
     @Path("{id}")
     @GET    // This method only accepts HTTP GET requests.
+    @RolesAllowed({"ActiveStudent", "Accounting", "Exclusive"})
     public Response findBillById(@PathParam("id") Long id) {
         Bill existingBill = _billRepository.findById(id).orElseThrow(NotFoundException::new);
 
@@ -41,6 +44,7 @@ public class BillResource {
     }
 
     @POST    // This method only accepts HTTP POST requests.
+    @RolesAllowed({"ActiveStudent", "Accounting"})
     public Response addBill(Bill newBill, @Context UriInfo uriInfo) {
 
         String errorMessage = JavaBeanValidator.validateBean(newBill);
@@ -75,7 +79,8 @@ public class BillResource {
     }
 
     @PUT            // This method only accepts HTTP PUT requests.
-    @Path("{id}")    // This method accepts a path parameter and gives it a name of id
+    @Path("{id}")
+    @RolesAllowed("ActiveStudent")// This method accepts a path parameter and gives it a name of id
     public Response updateBill(@PathParam("id") Long id, Bill updatedBill) {
         if (!id.equals(updatedBill.getId())) {
             throw new BadRequestException();
@@ -119,7 +124,8 @@ public class BillResource {
     }
 
     @DELETE            // This method only accepts HTTP DELETE requests.
-    @Path("{id}")    // This method accepts a path parameter and gives it a name of id
+    @Path("{id}")
+    @RolesAllowed("Exclusive")// This method accepts a path parameter and gives it a name of id
     public Response delete(@PathParam("id") Long id) {
 
         Bill existingBill = _billRepository

@@ -41,7 +41,8 @@ public class BillInitializer {
                 }
 
             } catch (Exception ex) {
-                _logger.fine(ex.getMessage());
+                _logger.severe("Failed to initialize bills: " + ex.getMessage());
+                ex.printStackTrace();
             }
 
             _logger.info("Created " + _billRepository.count() + " records.");
