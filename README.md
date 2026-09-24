@@ -23,11 +23,26 @@ Exclusive	✅	❌	❌	✅
 
 Authorization is enforced at the REST API layer using:
 
-Jakarta Security @RolesAllowed
-JWT role claims
-Backend authorization checks
+- Jakarta Security `@RolesAllowed`
+- JWT role claims
+- Backend authorization checks
 
 The frontend may hide unavailable actions for better user experience, but the backend remains the final security boundary.
+
+### Multi-Tenant Data Isolation
+
+SecureBill also implements multi-tenant data access based on the authenticated user's identity.
+
+Each Bill is associated with the username (`preferred_username`) from the Keycloak JWT.
+
+Data access rules:
+
+- **ActiveStudent** can view, create, update, and delete only their own Bills.
+- **Accounting** can view all Bills, but can update or delete only Bills associated with their own username.
+- **Executive** can view all Bills, but can update or delete only Bills associated with their own username.
+- The username associated with a Bill is assigned by the backend from the authenticated JWT rather than trusted from the client request.
+
+The backend enforces tenant-level data isolation through authenticated user identity and repository queries such as `findByUsername()` and `findByIdAndUsername()`.
 
 ## Authentication and Identity Management
 
